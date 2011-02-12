@@ -1,0 +1,18 @@
+dogfood
+=======
+
+JSON serialization for custom Python classes. To make any class serializable,
+either
+
+* add the attribute __food__
+* subclass Food
+
+You'll also need to supply an __encode__() method that returns a list in the
+form:
+
+  def __encode__(self):
+      return ['ClassName', [self.arg, self.arg2]]
+
+Where ClassName is the name of your class, and the arguments in the list
+are those to create a new instance. This module does not support repopulating
+the __dict__ of the object, just recreating from the __init__ arguments.
