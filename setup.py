@@ -10,6 +10,7 @@ ext_modules=[
 
 setup(
     name="dogfood",
+    version="0.0.1",
     cmdclass = {"build_ext": build_ext},
     ext_modules = ext_modules,
     )

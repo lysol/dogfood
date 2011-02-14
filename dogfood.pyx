@@ -17,9 +17,14 @@ def _deflate(thing):
         thing_list = thing.__encode__()
         obj_name = thing_list[0]
         obj_args = thing_list[1]
+        if len(thing_list) == 3:
+            obj_kwargs = thing_list[2]
+        else:
+            obj_kwargs = None
         for index, arg in enumerate(obj_args):
             obj_args[index] = _deflate(arg)
-        return [obj_name, obj_args, '__food__']
+        obj_kwargs = _deflate(obj_kwargs)
+        return [obj_name, obj_args, obj_kwargs, '__food__']
 
     if type(thing) == dict:
         out_dict = dict(thing)
@@ -47,7 +52,7 @@ def _can_be_food(alist):
     return type(alist) == list and len(alist) == 3 and alist[2] == '__food__'
 
 def _inflate(thing):
-    if len(thing) == 3 and thing[2] == '__food__':
+    if thing[-1] == '__food__':
         if thing[0] in filter(_is_food, globals().keys()):
             # Inflate args too
             for index, arg in enumerate(thing[1]):
@@ -63,11 +68,22 @@ def _inflate(thing):
                         if _can_be_food(val):
                             thing[1][index][key] = _inflate(val)
                         if _can_be_food(key):
-                            thing[1][index][_inflate(key)] = val
+                            thing[1][index][_inflate(key)] = thing[1][index][key]
                             del(thing[1][index][key])
+            if len(thing) == 3 and type(thing[2]) == dict:
+                dthing = dict(thing[2])
+                for key, val in dthing.iteritems():
+                    if _can_be_food(val):
+                        thing[2][key] = _inflate(val)
+                    if _can_be_food(key):
+                        thing[2][_inflate(key)] = thing[2][key]
+                        del(thing[2][key])
+                kwargs = thing[2]
+            else:
+                kwargs = {}
             # deref the object and make a new one
             exe = globals()[thing[0]]
-            return exe(*thing[1])
+            return exe(*thing[1], **kwargs)
     return thing
 
 

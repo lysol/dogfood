@@ -16,3 +16,9 @@ form:
 Where ClassName is the name of your class, and the arguments in the list
 are those to create a new instance. This module does not support repopulating
 the __dict__ of the object, just recreating from the __init__ arguments.
+
+Requires
+========
+
+jsonlib
+Cython, for building
