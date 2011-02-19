@@ -71,7 +71,6 @@ def _inflate(thing):
                             thing[1][index][_inflate(key)] = thing[1][index][key]
                             del(thing[1][index][key])
             if len(thing) == 4 and type(thing[2]) == dict:
-                print 'test'
                 dthing = dict(thing[2])
                 for key, val in dthing.iteritems():
                     if _can_be_food(val):
