@@ -51,40 +51,33 @@ def _is_food(oname):
 def _can_be_food(alist):
     return type(alist) == list and len(alist) == 3 and alist[2] == '__food__'
 
-def _inflate(thing):
-    if thing[-1] == '__food__':
+def _inflate(thing, parent=None):
+    if type(thing) == list and thing[-1] == '__food__':
         if thing[0] in filter(_is_food, globals().keys()):
             # Inflate args too
-            for index, arg in enumerate(thing[1]):
-                if type(arg) == list and len(arg) == 3 and arg[2] == '__food__':
-                    thing[1][index] = _inflate(arg)
-                    continue
-                if type(arg) == list:
-                    for nindex, item in enumerate(arg):
-                        if _can_be_food(item):
-                            thing[1][index][nindex] = _inflate(item)
-                if type(arg) == dict:
-                    for key, val in arg.iteritems():
-                        if _can_be_food(val):
-                            thing[1][index][key] = _inflate(val)
-                        if _can_be_food(key):
-                            thing[1][index][_inflate(key)] = thing[1][index][key]
-                            del(thing[1][index][key])
+            thing[1] = _inflate(thing[1], parent=thing)
+            # kwargs
             if len(thing) == 4 and type(thing[2]) == dict:
-                dthing = dict(thing[2])
-                for key, val in dthing.iteritems():
-                    if _can_be_food(val):
-                        thing[2][key] = _inflate(val)
-                    if _can_be_food(key):
-                        thing[2][_inflate(key)] = thing[2][key]
-                        del(thing[2][key])
-                kwargs = thing[2]
+                kwargs = _inflate(thing[2], parent=thing)
             else:
                 kwargs = {}
             # deref the object and make a new one
             exe = globals()[thing[0]]
             return exe(*thing[1], **kwargs)
-    return thing
+
+    elif type(thing) == list:
+        for nindex, item in enumerate(thing):
+            thing[nindex] = _inflate(item, parent=thing)
+        return thing
+    elif type(thing) == dict:
+        for key, val in thing.iteritems():
+            thing[key] = _inflate(val, parent=thing)
+            thing[_inflate(key, parent=thing)] = thing[key]
+            if _inflate(key, parent) != key:
+                del(thing[key])
+        return thing
+    else:
+        return thing
 
 
 cdef class Food:
